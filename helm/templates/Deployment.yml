@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appName }}-deployment
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.deployment.replicas }}
+  selector:
+    matchLabels:
+      app: {{ .Values.appName }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.appName }}
+    spec:
+      serviceAccountName: {{ .Values.deployment.serviceAccountName }}
+      containers:
+        - name: {{ .Values.appName }}
+          image: {{ .Values.deployment.image }}
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              pip install -r /app/requirements.txt && python /app/aws-vpc-metrics-exporter.py
+          resources:
+            limits:
+              memory: "256Mi"
+            requests:
+              cpu: "0.5"
+              memory: "256Mi"
+          ports:
+            - containerPort: 9106
+          volumeMounts:
+            - name: python-script-volume
+              mountPath: /app/aws-vpc-metrics-exporter.py
+              subPath: aws-vpc-metrics-exporter.py
+            - name: dependencies-volume
+              mountPath: /app/requirements.txt
+              subPath: requirements.txt
+      volumes:
+        - name: python-script-volume
+          configMap:
+            name: {{ .Values.appName }}-configmap
+        - name: dependencies-volume
+          configMap:
+            name: {{ .Values.appName }}-deps-configmap

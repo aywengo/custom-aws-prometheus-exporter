@@ -10,8 +10,8 @@ In this example, our custom exporter exposes `aws_vpc_subnet_free_ips` metric:
 ```
 # HELP aws_vpc_subnet_free_ips Free IPs in each VPC Subnet
 # TYPE aws_vpc_subnet_free_ips gauge
-aws_vpc_subnet_free_ips{availability_zone="eu-west-1a",cidr_block="10.1.0.0/24",subnet_id="subnet-1",subnet_name="subnet-1",vpc_id="vpc-private"} 250.0
-aws_vpc_subnet_free_ips{availability_zone="eu-west-1b",cidr_block="10.1.1.0/24",subnet_id="subnet-2",subnet_name="subnet-2",vpc_id="vpc-private"} 250.0
+aws_vpc_subnet_free_ips{availability_zone="eu-west-1a",cidr_block="10.1.0.0/24",subnet_id="subnet-1",subnet_name="subnet-1",vpc_id="vpc-private",total_ips=250} 250.0
+aws_vpc_subnet_free_ips{availability_zone="eu-west-1b",cidr_block="10.1.1.0/24",subnet_id="subnet-2",subnet_name="subnet-2",vpc_id="vpc-private",total_ips=250} 250.0
 ```
 
 Here is an example of a Prometheus rule that can be used to alert on a VPC Subnet that has been running out of free IPs for more than 5m.
@@ -27,3 +27,17 @@ groups:
     annotations:
       summary: Subnet {{$labels.vpc_id}}/{{$labels.subnet_name}} CIDR {{$labels.cidr_block}} in AZ {{$labels.availability_zone}} is running out free IPs. Only {{$value}} left to use, which is less than 32.
 ```
+
+## Usage
+
+- Clone this repository
+- Change src/main.py to expose the metric you need
+  - Tips for debugging:
+    - `helm lint helm`
+    - `helm template helm`
+    - `helm install --dry-run --debug test helm`
+    - `helm upgrade --dry-run --debug test helm`
+- Change helm/values.yaml to match your needs
+- Install the helm chart
+  - `helm install aws-custom-exporter helm`
+  - If you want in another namespace than `default`, use ` --set namespace=monitoring` or update `namespace` in values.yaml

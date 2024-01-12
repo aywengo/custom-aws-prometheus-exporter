@@ -1,0 +1,7 @@
+apiVersion: v2
+name: Custom AWS Metrics Exporter
+description: A Helm chart for lightweight AWS metrics exporter
+
+type: application
+
+version: 0.1.0
