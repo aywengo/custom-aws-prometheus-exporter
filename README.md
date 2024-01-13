@@ -1,6 +1,8 @@
 # custom-aws-prometheus-exporter
 Utilize the boto3 library to retrieve and make accessible any Prometheus metric.
 
+[Story on medium](https://medium.com/@aywengo/export-custom-aws-metrics-to-prometheus-d795f63de2ce)
+
 ## Purpose
 Sometimes [cloudwatch_exporter](https://github.com/prometheus/cloudwatch_exporter) or [yet-another-cloudwatch-exporter](https://github.com/nerdswords/yet-another-cloudwatch-exporter) do not expose a metric you might need. 
 

@@ -1,4 +1,4 @@
-appName: aws-vpc-metrics-monitor
+appName: aws-vpc-metrics-exporter
 
 namespace: monitoring
 
