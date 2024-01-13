@@ -15,7 +15,7 @@ aws_vpc_subnet_free_ips{availability_zone="eu-west-1b",cidr_block="10.1.1.0/24",
 ```
 
 Here is an example of a Prometheus rule that can be used to alert on a VPC Subnet that has been running out of free IPs for more than 5m.
-```
+```yaml
 groups:
 - name: Subnet Free IPs
   rules:
@@ -41,3 +41,28 @@ groups:
 - Install the helm chart
   - `helm install aws-custom-exporter helm`
   - If you want in another namespace than `default`, use ` --set namespace=monitoring` or update `namespace` in values.yaml
+  Make sure Prometheus is configured to discover Monitoring Services in the namespace you are deploying to.
+  - If you want to deploy in different region than `eu-west-1`, use `--set aws.region=us-east-1` or update `aws.region` in values.yaml
+  - If you want to authenticate with AWS key/secret, use `--set aws.accessKeyID=keyid --set aws.secretAccessKey=secretkey` or update `aws` section in values.yaml
+
+## Security
+
+The default configuration uses IAM roles to authenticate with AWS. This is the recommended way to authenticate with AWS.
+Make sure IAM user has the following permissions:
+```json
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "Stmt1488491317000",
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeSubnets"
+            ],
+            "Resource": [
+                "*"
+            ]
+        }
+    ]
+}
+```

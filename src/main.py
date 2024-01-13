@@ -3,7 +3,6 @@ import boto3
 from flask import Flask
 from prometheus_client import Gauge, make_wsgi_app
 from werkzeug.middleware.dispatcher import DispatcherMiddleware
-from werkzeug.serving import run_simple
 from threading import Thread
 import time
 
@@ -14,16 +13,25 @@ app = Flask(__name__)
 region = os.getenv('AWS_REGION', 'us-east-1')
 
 # Initialize AWS Session
-session = boto3.Session(
-    region_name=region  # Use environment variable as region
-)
+session_kwargs = {'region_name': region}
+if 'AWS_ACCESS_KEY_ID' in os.environ and 'AWS_SECRET_ACCESS_KEY' in os.environ:
+    session_kwargs.update(
+        {
+            'aws_access_key_id': os.environ['AWS_ACCESS_KEY_ID'],
+            'aws_secret_access_key': os.environ['AWS_SECRET_ACCESS_KEY']
+         })
+session = boto3.Session(**session_kwargs)
 
 # Get EC2 resource
 ec2 = session.resource('ec2')
 
 # Define Gauge Metric
-g = Gauge('aws_vpc_subnet_free_ips', 'Free IPs in each VPC Subnet',
-          ['vpc_id', 'subnet_id', 'cidr_block', 'subnet_name', 'availability_zone', 'total_ips'])
+gauge_free_ips = Gauge('aws_vpc_subnet_free_ips', 'Free IPs in each VPC Subnet',
+                       ['vpc_id', 'subnet_id', 'cidr_block', 'subnet_name', 'availability_zone', 'total_ips'])
+
+# Add more metrics if needed
+# gauge_total_ips = Gauge('aws_vpc_subnet_total_ips', 'Total IPs in each VPC Subnet',
+#                                 ['vpc_id', 'subnet_id', 'cidr_block', 'subnet_name', 'availability_zone'])
 
 
 def update_metrics():
@@ -40,8 +48,11 @@ def update_metrics():
                         break
 
                 # Set Gauge value for each subnet
-                g.labels(vpc_id=vpc.id, subnet_id=subnet.id, cidr_block=subnet.cidr_block, subnet_name=subnet_name,
-                         availability_zone=subnet.availability_zone, total_ips=total_ips).set(available_ips)
+                gauge_free_ips.labels(vpc_id=vpc.id, subnet_id=subnet.id, cidr_block=subnet.cidr_block, subnet_name=subnet_name,
+                                      availability_zone=subnet.availability_zone, total_ips=total_ips).set(available_ips)
+                # Add more metrics if needed
+                # gauge_total_ips.labels(vpc_id=vpc.id, subnet_id=subnet.id, cidr_block=subnet.cidr_block, subnet_name=subnet_name,
+                #                        availability_zone=subnet.availability_zone).set(total_ips)
         time.sleep(60)  # Update every 60 seconds
 
 
